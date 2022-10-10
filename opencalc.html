@@ -186,10 +186,10 @@ function onAnyChange() {
   let kill, gap;
   if (e.plantType.value === 'narrow') {
     gap = 2.5 * (wd / wd) * (wd * (0.25 * wd) + 0.01 * (size * wd) - 0.01 * (size + wd) - 0.038 * size - 0.49 * wia + 2 + 0.06 * size)
-    kill = - 0.0015 * wd + 0.0016 * (size + wia) + 0.0099 * wia + 0.026 + 0.1 * wd
+    kill = 0.35 * (- 0.0015 * wd + 0.0016 * (size + wia) + 0.0099 * wia + 0.026 + 0.1 * wd)
   } else {
     gap = 20 * (wd / wd) * (0.1 * wd * (0.25 * wd) + 0.015 * (size + wd) - 0.05 * wia + 0.005 * size);
-    kill = -0.03 * wd + 0.05 * (size + wia) + 0.07 * wia + 0.023 * size;
+    kill = 0.2 * (-0.03 * wd + 0.05 * (size + wia) + 0.07 * wia + 0.023 * size);
   }
   
   e.acceptSizeOutput.textContent = suggestedAcceptSize;
