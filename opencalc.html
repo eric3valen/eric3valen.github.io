@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Parcel Sandbox</title>
+	<meta charset="UTF-8" />
+
+	<style>
+.container-container {
+  display: grid;
+  grid-template-columns: auto auto;
+  width: fit-content;
+  grid-gap: 2rem;
+  margin: 2rem;
+}
+
+.container {
+  box-sizing: border-box;
+  border: 1px solid black;
+  padding: 1em;
+  width: fit-content;
+}
+
+.control {
+  display: grid;
+  grid-template-columns: minmax(10em, auto) minmax(4em, auto) 20rem;
+  align-items: center;
+  padding: 0.5em;
+  grid-column-gap: 1em;
+}
+
+.value {
+  text-align: right;
+}
+
+.output {
+  text-align: right;
+  font-weight: bold;
+}
+
+.header {
+  font-size: 1.25em;
+  
+}
+	</style>
+</head>
+
+<body>
+
+<div class="container-container">
+	<div class="container">
+		<span class="header">Machine effectiveness</span>
+		<hr />
+		
+		<div class="control">
+			<label for="plantType">Plant type:</label>
+			<span></span>
+			<select id="plantType">
+				<option value="narrow">Narrow-leaf</option>
+				<option value="wide">Wide-leaf</option>
+			</select>
+		</div>
+		
+		<div class="control">
+			<label for="size">Size:</label>
+			<span id="sizeValue" class="value">1</span>
+			<input id="size" type="range" min=1 max=10 step=3 value=1 />
+		</div>
+		
+		<div class="control">
+			<label for="interference">Interference:</label>
+			<span id="interferenceValue" class="value">1</span>
+			<input id="interference" type="range" min=1 max=3 value=1 />
+		</div>
+		
+		<div class="control">
+			<label for="weedDensity">Weed density:</label>
+			<span id="weedDensityValue" class="value">0</span>
+			<input id="weedDensity" type="range" min=0 max=5 value=0 />
+		</div>
+		
+		<hr />
+		
+		<div class="control">
+			<span>Suggested accept size:</span>
+			<span id="acceptSizeOutput" class="output"></span>
+		</div>
+		
+		<div class="control">
+			<span>Plants killed:</span>
+			<span id="killedOutput" class="output"></span>
+		</div>
+		
+		<div class="control">
+			<span>Weeds left:</span>
+			<span id="weedsLeftOutput" class="output"></span>
+		</div>
+	</div>
+	
+	<div class="container">
+		<span class="header">Equivalent manual labor</span>
+		<hr />
+		
+		<div class="control">
+			<label for="acres">Acres:</label>
+			<span></span>
+			<input id="acres" type="number" value=1 min=1 />
+		</div>
+		
+		<div class="control">
+			<label for="crew">Crew:</label>
+			<span></span>
+			<input id="crew" type="number" value=1 min=1 />
+		</div>
+		
+		<hr />
+		
+		<div class="control">
+			<span>Time:</span>
+			<span></span>
+			<span id="timeOutput" class="output"></span>
+		</div>
+		
+		<div class="control">
+			<span>Cost:</span>
+			<span></span>
+			<span id="costOutput" class="output"></span>
+		</div>
+	</div>
+</div>
+
+
+	<script type="text/javascript">
+const e = {};
+for (const id of [
+  'plantType',
+  'weedDensity',
+  'weedDensityValue',
+  'interference',
+  'interferenceValue',
+  'size',
+  'sizeValue',
+  'acceptSizeOutput',
+  'killedOutput',
+  'weedsLeftOutput',
+  'crew',
+  'acres',
+  'timeOutput',
+  'costOutput',
+]) {
+  e[id] = document.getElementById(id);
+}
+
+listen(e.plantType);
+listen(e.acres);
+listen(e.crew);
+bind(e.size, e.sizeValue);
+bind(e.interference, e.interferenceValue);
+bind(e.weedDensity, e.weedDensityValue);
+
+function listen(input) {
+  input.addEventListener('input', onAnyChange);
+  input.addEventListener('change', onAnyChange);
+}
+
+function bind(input, output) {
+  const update = () => {
+    output.textContent = input.value;
+    onAnyChange();
+  }
+  input.addEventListener('input', update);
+  update();
+}
+
+function onAnyChange() {
+  const size = e.size.valueAsNumber;
+  const wia = e.interference.valueAsNumber;
+  const wd = e.weedDensity.valueAsNumber;
+  const acres = e.acres.valueAsNumber || 1;
+  const crew = e.crew.valueAsNumber || 1;
+  
+  const suggestedAcceptSize = size + wia;
+  const time = 17.6 * wd * acres / crew + 3.34;
+  const cost = 15 * crew * time;
+  
+  let kill, gap;
+  if (e.plantType.value === 'narrow') {
+    gap = 2.5 * (wd / wd) * (wd * (0.25 * wd) + 0.01 * (size * wd) - 0.01 * (size + wd) - 0.038 * size - 0.49 * wia + 2 + 0.06 * size)
+    kill = - 0.0015 * wd + 0.0016 * (size + wia) + 0.0099 * wia + 0.026 + 0.1 * wd
+  } else {
+    gap = 20 * (wd / wd) * (0.1 * wd * (0.25 * wd) + 0.015 * (size + wd) - 0.05 * wia + 0.005 * size);
+    kill = -0.03 * wd + 0.05 * (size + wia) + 0.07 * wia + 0.023 * size;
+  }
+  
+  e.acceptSizeOutput.textContent = suggestedAcceptSize;
+  e.killedOutput.textContent = round(kill, 3) + '%';
+  e.weedsLeftOutput.textContent = round(gap, 3) + '%';
+  e.timeOutput.textContent = round(time, 1);
+  e.costOutput.textContent = round(cost);
+}
+
+function round(x, p) {
+  x = x || 0;
+  const m = p ? Math.pow(10, p) : 1;
+  return Math.round(x * m) / m;
+}
+	</script>
+</body>
+
+</html>
+<a href="file:///C:/Users/Vslenstone/OneDrive/Desktop/jGianvieveproject/Ongoing%20Vlog%20for%20Genevieve/mip_data/NZ%20stats%20project/eric3valen.github.io/index.html">Main Menu</a>
